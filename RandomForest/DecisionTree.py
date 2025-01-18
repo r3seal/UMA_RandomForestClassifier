@@ -76,7 +76,9 @@ class DecisionTree:
             return f"{indent}Predict: {node.value}\n"
 
         # Tworzenie opisu dla bieżącego węzła
-        result = f"{indent}Node: [feature: {node.feature} <= {node.value}]\n"
+        result = f"{indent}Node\n"
+        result += f"{indent}feature: {node.feature}\n"
+        result += f"{indent}[X <= {node.value}]\n"
         result += f"{indent}├── If True:\n"
         result += self._draw_node(node.left, depth + 1)
         result += f"{indent}└── If False:\n"
