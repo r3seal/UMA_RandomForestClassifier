@@ -1,4 +1,4 @@
-from Node import Node
+from .Node import Node
 
 class DecisionTree:
     def __init__(self, max_depth=None):
@@ -61,3 +61,25 @@ class DecisionTree:
 
     def predict(self, X):
         return [self.predict_one(x, self.root) for x in X]
+
+    def draw(self):
+        if self.root is None:
+            print("Tree is empty.")
+        else:
+            print("\nDecision Tree Structure:\n")
+            print(self._draw_node(self.root))
+
+    def _draw_node(self, node, depth=0):
+        indent = "    " * depth
+
+        if node.feature is None:
+            return f"{indent}Predict: {node.value}\n"
+
+        # Tworzenie opisu dla bieżącego węzła
+        result = f"{indent}Node: [feature: {node.feature} <= {node.value}]\n"
+        result += f"{indent}├── If True:\n"
+        result += self._draw_node(node.left, depth + 1)
+        result += f"{indent}└── If False:\n"
+        result += self._draw_node(node.right, depth + 1)
+
+        return result

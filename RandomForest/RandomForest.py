@@ -1,6 +1,6 @@
 import random
 
-from DecisionTree import DecisionTree
+from .DecisionTree import DecisionTree
 
 class RandomForest:
     def __init__(self, n_trees=10, max_depth=None):
