@@ -4,6 +4,7 @@ import csv
 from RandomForest.RandomForest import RandomForest
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from math import sqrt
 
 
 # Wczytanie danych z pliku CSV
@@ -90,7 +91,7 @@ def test_random_forest_comparison(X, y, values_to_test, const_param, test_type="
         accuracies_custom.append(custom_accuracy)
 
         # gotowa implementacja sklearn
-        sklearn_model = RandomForestClassifier(n_estimators=n_trees, max_depth=depth, random_state=42)
+        sklearn_model = RandomForestClassifier(n_estimators=n_trees, max_depth=depth, random_state=42, max_samples=int(sqrt(len(X))))
         sklearn_model.fit(X, y)
         sklearn_predictions = sklearn_model.predict(X)
         sklearn_accuracy = accuracy_score(y, sklearn_predictions)

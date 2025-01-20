@@ -1,21 +1,25 @@
 import random
+from math import sqrt
 
 from .DecisionTree import DecisionTree
 
 class RandomForest:
-    def __init__(self, n_trees=10, max_depth=None):
+    def __init__(self, n_trees=10, max_depth=None, p=0.75):
         self.n_trees = n_trees
         self.max_depth = max_depth
         self.trees = []
+        self.p = p
+        random.seed(42)
 
     def fit(self, X, y):
         n_samples = len(X)
+        n_tree_samples = int(sqrt(len(X)))
         errors = [False] * n_samples
         for _ in range(self.n_trees):
             # Podział danych na poprawne i niepoprawne predykcje
             correct = [i for i in range(n_samples) if not errors[i]]
             incorrect = [i for i in range(n_samples) if errors[i]]
-            indices = random.choices(correct + incorrect * 2, k=n_samples)
+            indices = random.choices(correct + incorrect, k=n_tree_samples, weights=[1-self.p]*len(correct) + [self.p]*len(incorrect))
             sample_X = [X[i] for i in indices]
             sample_y = [y[i] for i in indices]
             tree = DecisionTree(max_depth=self.max_depth)
@@ -23,7 +27,7 @@ class RandomForest:
             self.trees.append(tree)
 
             # Aktualizacja błędów
-            predictions = tree.predict(X)
+            predictions = self.predict(X)
             errors = [predictions[i] != y[i] for i in range(n_samples)]
 
     def predict(self, X):
