@@ -4,11 +4,11 @@ from math import sqrt
 from .DecisionTree import DecisionTree
 
 class RandomForest:
-    def __init__(self, n_trees=10, max_depth=None, p=0.75):
+    def __init__(self, n_trees=10, max_depth=None):
         self.n_trees = n_trees
         self.max_depth = max_depth
         self.trees = []
-        self.p = p
+        self.p = 0.9
         random.seed(42)
 
     def fit(self, X, y):
