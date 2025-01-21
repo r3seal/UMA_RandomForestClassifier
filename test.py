@@ -7,7 +7,6 @@ from sklearn.metrics import accuracy_score
 from math import sqrt
 
 
-# Wczytanie danych z pliku CSV
 def load_data(file_path):
     with open(file_path, "r") as file:
         reader = csv.DictReader(file)
@@ -16,12 +15,9 @@ def load_data(file_path):
             data.append(row)
     return data
 
-
-# Przygotowanie danych w formacie X i y
 def prepare_data(data):
     X, y = [], []
     for row in data:
-        # Wybrane kolumny jako cechy (X) oraz Workout_Type jako label (y)
         X.append([
             float(row["Age"]),
             1 if row["Gender"] == "Male" else 0,
@@ -41,8 +37,6 @@ def prepare_data(data):
         y.append(row["Workout_Type"])
     return X, y
 
-
-# Funkcja do przeprowadzenia testów
 def test_random_forest(X, y, values_to_test, const_param, test_type="n_trees"):
     accuracies = []
     times = []
@@ -55,13 +49,11 @@ def test_random_forest(X, y, values_to_test, const_param, test_type="n_trees"):
             n_trees = const_param
             depth = param
 
-        # Trening modelu i pomiar czasu
         start_time = time.time()
         model = RandomForest(n_trees=n_trees, max_depth=depth)
         model.fit(X, y)
         train_time = time.time() - start_time
 
-        # Predykcja i obliczenie skuteczności
         predictions = model.predict(X)
         accuracy = sum(1 for i in range(len(y)) if predictions[i] == y[i]) / len(y)
 
@@ -83,14 +75,12 @@ def test_random_forest_comparison(X, y, values_to_test, const_param, test_type="
             n_trees = const_param
             depth = param
 
-        # nasza implementacja
         custom_model = RandomForest(n_trees=n_trees, max_depth=depth)
         custom_model.fit(X, y)
         custom_predictions = custom_model.predict(X)
         custom_accuracy = sum(1 for i in range(len(y)) if custom_predictions[i] == y[i]) / len(y)
         accuracies_custom.append(custom_accuracy)
 
-        # gotowa implementacja sklearn
         sklearn_model = RandomForestClassifier(n_estimators=n_trees, max_depth=depth, random_state=42, max_samples=int(sqrt(len(X))))
         sklearn_model.fit(X, y)
         sklearn_predictions = sklearn_model.predict(X)
@@ -100,7 +90,6 @@ def test_random_forest_comparison(X, y, values_to_test, const_param, test_type="
     return accuracies_custom, accuracies_sklearn
 
 
-# Rysowanie wykresów
 def plot_results(x_values, accuracies, times, x_label, test_type):
     fig, ax1 = plt.subplots()
 
@@ -133,7 +122,6 @@ def plot_comparison(values, accuracies_custom, accuracies_sklearn, xlabel, title
     plt.grid()
     plt.show()
 
-# Główna funkcja testowa
 def test_draw(file, max_depth):
     data = load_data(file)
     X, y = prepare_data(data)

@@ -75,7 +75,6 @@ class DecisionTree:
         if node.feature is None:
             return f"{indent}Predict: {node.value}\n"
 
-        # Tworzenie opisu dla bieżącego węzła
         result = f"{indent}Node\n"
         result += f"{indent}feature: {node.feature}\n"
         result += f"{indent}[X <= {node.value}]\n"

@@ -8,7 +8,7 @@ class RandomForest:
         self.n_trees = n_trees
         self.max_depth = max_depth
         self.trees = []
-        self.p = 0.9
+        self.p = 0.8
         random.seed(42)
 
     def fit(self, X, y):
@@ -16,7 +16,6 @@ class RandomForest:
         n_tree_samples = int(sqrt(len(X)))
         errors = [False] * n_samples
         for _ in range(self.n_trees):
-            # Podział danych na poprawne i niepoprawne predykcje
             correct = [i for i in range(n_samples) if not errors[i]]
             incorrect = [i for i in range(n_samples) if errors[i]]
             indices = random.choices(correct + incorrect, k=n_tree_samples, weights=[1-self.p]*len(correct) + [self.p]*len(incorrect))
@@ -26,7 +25,6 @@ class RandomForest:
             tree.fit(sample_X, sample_y)
             self.trees.append(tree)
 
-            # Aktualizacja błędów
             predictions = self.predict(X)
             errors = [predictions[i] != y[i] for i in range(n_samples)]
 
