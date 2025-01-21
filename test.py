@@ -1,10 +1,12 @@
 import time
 import matplotlib.pyplot as plt
 import csv
+
 from RandomForest.RandomForest import RandomForest
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from math import sqrt
+from sklearn.model_selection import train_test_split
 
 
 def load_data(file_path):
@@ -15,11 +17,11 @@ def load_data(file_path):
             data.append(row)
     return data
 
+
 def prepare_data(data):
     X, y = [], []
     for row in data:
         X.append([
-            float(row["Age"]),
             1 if row["Gender"] == "Male" else 0,
             float(row["Weight (kg)"]),
             float(row["Height (m)"]),
@@ -31,63 +33,10 @@ def prepare_data(data):
             float(row["Fat_Percentage"]),
             float(row["Water_Intake (liters)"]),
             float(row["Workout_Frequency (days/week)"]),
-            float(row["Experience_Level"]),
             float(row["BMI"]),
         ])
-        y.append(row["Workout_Type"])
+        y.append(row["Experience_Level"])
     return X, y
-
-def test_random_forest(X, y, values_to_test, const_param, test_type="n_trees"):
-    accuracies = []
-    times = []
-
-    for param in values_to_test:
-        if test_type == "n_trees":
-            n_trees = param
-            depth = const_param
-        elif test_type == "depth":
-            n_trees = const_param
-            depth = param
-
-        start_time = time.time()
-        model = RandomForest(n_trees=n_trees, max_depth=depth)
-        model.fit(X, y)
-        train_time = time.time() - start_time
-
-        predictions = model.predict(X)
-        accuracy = sum(1 for i in range(len(y)) if predictions[i] == y[i]) / len(y)
-
-        accuracies.append(accuracy)
-        times.append(train_time)
-
-    return accuracies, times
-
-
-def test_random_forest_comparison(X, y, values_to_test, const_param, test_type="n_trees"):
-    accuracies_custom = []
-    accuracies_sklearn = []
-
-    for param in values_to_test:
-        if test_type == "n_trees":
-            n_trees = param
-            depth = const_param
-        elif test_type == "depth":
-            n_trees = const_param
-            depth = param
-
-        custom_model = RandomForest(n_trees=n_trees, max_depth=depth)
-        custom_model.fit(X, y)
-        custom_predictions = custom_model.predict(X)
-        custom_accuracy = sum(1 for i in range(len(y)) if custom_predictions[i] == y[i]) / len(y)
-        accuracies_custom.append(custom_accuracy)
-
-        sklearn_model = RandomForestClassifier(n_estimators=n_trees, max_depth=depth, random_state=42, max_samples=int(sqrt(len(X))))
-        sklearn_model.fit(X, y)
-        sklearn_predictions = sklearn_model.predict(X)
-        sklearn_accuracy = accuracy_score(y, sklearn_predictions)
-        accuracies_sklearn.append(sklearn_accuracy)
-
-    return accuracies_custom, accuracies_sklearn
 
 
 def plot_results(x_values, accuracies, times, x_label, test_type):
@@ -122,6 +71,7 @@ def plot_comparison(values, accuracies_custom, accuracies_sklearn, xlabel, title
     plt.grid()
     plt.show()
 
+
 def test_draw(file, max_depth):
     data = load_data(file)
     X, y = prepare_data(data)
@@ -131,31 +81,90 @@ def test_draw(file, max_depth):
     model.fit(X, y)
     model.trees[0].draw()
 
-def test_n_trees(file, n_trees_values, max_depth):
-    data = load_data(file)
+
+def test_random_forest(X_train, X_test, y_train, y_test, values_to_test, const_param, test_type="n_trees"):
+    accuracies = []
+    times = []
+
+    for param in values_to_test:
+        if test_type == "n_trees":
+            n_trees = param
+            depth = const_param
+        elif test_type == "depth":
+            n_trees = const_param
+            depth = param
+
+        start_time = time.time()
+        model = RandomForest(n_trees=n_trees, max_depth=depth)
+        model.fit(X_train, y_train)
+        train_time = time.time() - start_time
+
+        predictions = model.predict(X_test)
+        accuracy = sum(1 for i in range(len(y_test)) if predictions[i] == y_test[i]) / len(y_test)
+
+        accuracies.append(accuracy)
+        times.append(train_time)
+
+    return accuracies, times
+
+
+def test_random_forest_comparison(X_train, X_test, y_train, y_test, values_to_test, const_param, test_type="n_trees"):
+    accuracies_custom = []
+    accuracies_sklearn = []
+
+    for param in values_to_test:
+        if test_type == "n_trees":
+            n_trees = param
+            depth = const_param
+        elif test_type == "depth":
+            n_trees = const_param
+            depth = param
+
+        custom_model = RandomForest(n_trees=n_trees, max_depth=depth)
+        custom_model.fit(X_train, y_train)
+        custom_predictions = custom_model.predict(X_test)
+        custom_accuracy = sum(1 for i in range(len(y_test)) if custom_predictions[i] == y_test[i]) / len(y_test)
+        accuracies_custom.append(custom_accuracy)
+
+        sklearn_model = RandomForestClassifier(
+            n_estimators=n_trees, max_depth=depth, random_state=42, max_samples=int(sqrt(len(X_train)))
+        )
+        sklearn_model.fit(X_train, y_train)
+        sklearn_predictions = sklearn_model.predict(X_test)
+        sklearn_accuracy = accuracy_score(y_test, sklearn_predictions)
+        accuracies_sklearn.append(sklearn_accuracy)
+
+    return accuracies_custom, accuracies_sklearn
+
+
+def prepare_and_split_data(file_path):
+    data = load_data(file_path)
     X, y = prepare_data(data)
+    return train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+def test_n_trees(file, n_trees_values, max_depth):
+    X_train, X_test, y_train, y_test = prepare_and_split_data(file)
 
     print("Test 1: Liczba drzew przy stałej głębokości")
-    accuracies, times = test_random_forest(X, y, n_trees_values, max_depth, test_type="n_trees")
+    accuracies, times = test_random_forest(X_train, X_test, y_train, y_test, n_trees_values, max_depth, test_type="n_trees")
     plot_results(n_trees_values, accuracies, times, "Number of Trees", "n_trees")
 
 
 def test_depth(file, depth_values, n_trees):
-    data = load_data(file)
-    X, y = prepare_data(data)
+    X_train, X_test, y_train, y_test = prepare_and_split_data(file)
 
     print("Test 2: Głębokość przy stałej liczbie drzew")
-    accuracies, times = test_random_forest(X, y, depth_values, n_trees, test_type="depth")
+    accuracies, times = test_random_forest(X_train, X_test, y_train, y_test, depth_values, n_trees, test_type="depth")
     plot_results(depth_values, accuracies, times, "Max Depth", "depth")
 
 
 def test_n_trees_with_comparison(file, n_trees_values, max_depth):
-    data = load_data(file)
-    X, y = prepare_data(data)
+    X_train, X_test, y_train, y_test = prepare_and_split_data(file)
 
     print("Test 1: Liczba drzew przy stałej głębokości")
     accuracies_custom, accuracies_sklearn = test_random_forest_comparison(
-        X, y, n_trees_values, max_depth, test_type="n_trees"
+        X_train, X_test, y_train, y_test, n_trees_values, max_depth, test_type="n_trees"
     )
     plot_comparison(
         n_trees_values, accuracies_custom, accuracies_sklearn, "Number of Trees",
@@ -164,12 +173,11 @@ def test_n_trees_with_comparison(file, n_trees_values, max_depth):
 
 
 def test_depth_with_comparison(file, depth_values, n_trees):
-    data = load_data(file)
-    X, y = prepare_data(data)
+    X_train, X_test, y_train, y_test = prepare_and_split_data(file)
 
     print("Test 2: Głębokość przy stałej liczbie drzew")
     accuracies_custom, accuracies_sklearn = test_random_forest_comparison(
-        X, y, depth_values, n_trees, test_type="depth"
+        X_train, X_test, y_train, y_test, depth_values, n_trees, test_type="depth"
     )
     plot_comparison(
         depth_values, accuracies_custom, accuracies_sklearn, "Max Depth",
